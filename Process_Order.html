@@ -1,0 +1,614 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Process Orders Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8;
+        }
+        
+        .table-header {
+            background-color: #f8fafc;
+        }
+        
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        
+        .status-pending {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+        
+        .status-in-progress {
+            background-color: #e0f2fe;
+            color: #0369a1;
+        }
+        
+        .status-completed {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+        
+        .status-error {
+            background-color: #fee2e2;
+            color: #b91c1c;
+        }
+        
+        .priority-high {
+            background-color: #fee2e2;
+            color: #b91c1c;
+        }
+        
+        .priority-medium {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+        
+        .priority-low {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+        
+        .form-input {
+            border-radius: 0.375rem;
+            border: 1px solid #d1d5db;
+            padding: 0.5rem 0.75rem;
+            width: 100%;
+            font-size: 0.875rem;
+            transition: border-color 0.15s ease-in-out;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        .form-label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 0.5rem;
+        }
+        
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+        
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+        
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .toggle-slider {
+            background-color: #3b82f6;
+        }
+        
+        input:checked + .toggle-slider:before {
+            transform: translateX(26px);
+        }
+        
+        .table-row-hover:hover {
+            background-color: #f1f5f9;
+        }
+        
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .tooltip .tooltip-text {
+            visibility: hidden;
+            width: 200px;
+            background-color: #1f2937;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 8px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -100px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.75rem;
+        }
+        
+        .tooltip:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <ul style="list-style:none; display:flex; gap:20px; padding:10px; background:#ffffff;">
+          <li><a href="Dashboard.html" style="color: rgb(0, 0, 0);">Home Page</a></li>
+          <li><a href="Process_Order.html" style="color: rgb(0, 0, 0);">Process Order Page</a></li>
+          <li><a href="System_Monitoring.html" style="color: rgb(0, 0, 0);">System Monitoring Page</a></li>
+          <li><a href="Data_Flow.html" style="color: rgb(0, 0, 0);">Data Flow Page</a></li>
+          <li><a href="Admin_Panel.html" style="color: rgb(0, 0, 0);"> Admin Page </a></li>
+        </ul>
+      </nav>
+    
+
+    <div class="min-h-screen">
+        <!-- Header -->
+        <header class="bg-white shadow-sm">
+            <div class="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex justify-between items-center">
+                <div class="flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-blue-600 mr-3" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
+                        <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd" />
+                    </svg>
+                    <h1 class="text-2xl font-bold text-gray-800">Process Orders Management</h1>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <!-- FIFO Execution Toggle -->
+                    <div class="flex items-center bg-white rounded-lg border border-gray-200 p-3 shadow-sm">
+                        <div class="mr-3">
+                            <div class="text-sm font-medium text-gray-700">FIFO Execution</div>
+                            <div class="text-xs text-gray-500">Process orders in sequence</div>
+                        </div>
+                        <label class="toggle-switch tooltip">
+                            <input type="checkbox" id="fifoToggle" checked>
+                            <span class="toggle-slider"></span>
+                            <span class="tooltip-text">When enabled, process orders will be executed in First-In-First-Out sequence</span>
+                        </label>
+                    </div>
+                    
+                    <button class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md flex items-center transition-all">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+                        </svg>
+                        New Process Order
+                    </button>
+                </div>
+            </div>
+        </header>
+        
+        <main class="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- PO List Table -->
+                <div class="lg:col-span-2">
+                    <div class="bg-white shadow-md rounded-lg overflow-hidden">
+                        <div class="p-4 border-b border-gray-200">
+                            <h2 class="text-lg font-semibold text-gray-800">Process Orders</h2>
+                        </div>
+                        
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="table-header">
+                                    <tr>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">PO ID</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Setpoint</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Priority</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Sync Time</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    <!-- PO Item 1 -->
+                                    <tr class="table-row-hover">
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="text-sm font-medium text-gray-900">PO-2023-0542</div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="text-sm text-gray-900">1,500 kg</div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="status-badge status-in-progress">In Progress</span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="status-badge priority-high">High</span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            Today, 10:45 AM
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                            <button class="bg-blue-100 text-blue-700 hover:bg-blue-200 px-3 py-1 rounded-md text-sm font-medium transition-colors">
+                                                Confirm
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    
+                                    <!-- PO Item 2 -->
+                                    <tr class="table-row-hover">
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="text-sm font-medium text-gray-900">PO-2023-0541</div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="text-sm text-gray-900">2,200 kg</div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="status-badge status-pending">Pending</span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="status-badge priority-medium">Medium</span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            Today, 09:30 AM
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                            <button class="bg-blue-100 text-blue-700 hover:bg-blue-200 px-3 py-1 rounded-md text-sm font-medium transition-colors">
+                                                Confirm
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    
+                                    <!-- PO Item 3 -->
+                                    <tr class="table-row-hover">
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="text-sm font-medium text-gray-900">PO-2023-0540</div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="text-sm text-gray-900">850 kg</div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="status-badge status-completed">Completed</span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="status-badge priority-low">Low</span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            Yesterday, 4:15 PM
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                            <button class="bg-gray-100 text-gray-400 cursor-not-allowed px-3 py-1 rounded-md text-sm font-medium">
+                                                Confirm
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    
+                                    <!-- PO Item 4 -->
+                                    <tr class="table-row-hover">
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="text-sm font-medium text-gray-900">PO-2023-0539</div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="text-sm text-gray-900">1,200 kg</div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="status-badge status-error">Error</span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="status-badge priority-high">High</span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            Yesterday, 2:30 PM
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                            <button class="bg-blue-100 text-blue-700 hover:bg-blue-200 px-3 py-1 rounded-md text-sm font-medium transition-colors">
+                                                Retry
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    
+                                    <!-- PO Item 5 -->
+                                    <tr class="table-row-hover">
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="text-sm font-medium text-gray-900">PO-2023-0538</div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="text-sm text-gray-900">3,000 kg</div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="status-badge status-completed">Completed</span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="status-badge priority-medium">Medium</span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            Yesterday, 11:20 AM
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                            <button class="bg-gray-100 text-gray-400 cursor-not-allowed px-3 py-1 rounded-md text-sm font-medium">
+                                                Confirm
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- Pagination -->
+                        <div class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+                            <div class="flex-1 flex justify-between sm:hidden">
+                                <a href="#" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                                    Previous
+                                </a>
+                                <a href="#" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                                    Next
+                                </a>
+                            </div>
+                            <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                                <div>
+                                    <p class="text-sm text-gray-700">
+                                        Showing <span class="font-medium">1</span> to <span class="font-medium">5</span> of <span class="font-medium">12</span> results
+                                    </p>
+                                </div>
+                                <div>
+                                    <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                                        <a href="#" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                            <span class="sr-only">Previous</span>
+                                            <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                                <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                            </svg>
+                                        </a>
+                                        <a href="#" aria-current="page" class="z-10 bg-blue-50 border-blue-500 text-blue-600 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+                                            1
+                                        </a>
+                                        <a href="#" class="bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+                                            2
+                                        </a>
+                                        <a href="#" class="bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+                                            3
+                                        </a>
+                                        <a href="#" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                            <span class="sr-only">Next</span>
+                                            <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                                            </svg>
+                                        </a>
+                                    </nav>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- PO Initialization Form -->
+                <div class="lg:col-span-1">
+                    <div class="bg-white shadow-md rounded-lg overflow-hidden">
+                        <div class="p-4 border-b border-gray-200">
+                            <h2 class="text-lg font-semibold text-gray-800">Create Process Order</h2>
+                        </div>
+                        
+                        <div class="p-5">
+                            <form id="poForm">
+                                <div class="space-y-4">
+                                    <!-- PO ID Field -->
+                                    <div>
+                                        <label for="poId" class="form-label">PO ID</label>
+                                        <input type="text" id="poId" name="poId" class="form-input" placeholder="e.g. PO-2023-0543" required>
+                                    </div>
+                                    
+                                    <!-- Setpoint Field -->
+                                    <div>
+                                        <label for="setpoint" class="form-label">Setpoint</label>
+                                        <div class="flex">
+                                            <input type="number" id="setpoint" name="setpoint" class="form-input rounded-r-none" placeholder="e.g. 1500" required>
+                                            <span class="inline-flex items-center px-3 rounded-r-md border border-l-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
+                                                kg
+                                            </span>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Shift Field -->
+                                    <div>
+                                        <label for="shift" class="form-label">Shift</label>
+                                        <select id="shift" name="shift" class="form-input" required>
+                                            <option value="">Select shift</option>
+                                            <option value="1">Shift 1 (6:00 AM - 2:00 PM)</option>
+                                            <option value="2">Shift 2 (2:00 PM - 10:00 PM)</option>
+                                            <option value="3">Shift 3 (10:00 PM - 6:00 AM)</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <!-- Priority Field -->
+                                    <div>
+                                        <label class="form-label">Priority</label>
+                                        <div class="flex space-x-4">
+                                            <div class="flex items-center">
+                                                <input type="radio" id="priorityLow" name="priority" value="low" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300">
+                                                <label for="priorityLow" class="ml-2 text-sm text-gray-700">Low</label>
+                                            </div>
+                                            <div class="flex items-center">
+                                                <input type="radio" id="priorityMedium" name="priority" value="medium" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300" checked>
+                                                <label for="priorityMedium" class="ml-2 text-sm text-gray-700">Medium</label>
+                                            </div>
+                                            <div class="flex items-center">
+                                                <input type="radio" id="priorityHigh" name="priority" value="high" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300">
+                                                <label for="priorityHigh" class="ml-2 text-sm text-gray-700">High</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Materials Field -->
+                                    <div>
+                                        <label for="materials" class="form-label">Materials</label>
+                                        <div class="space-y-2">
+                                            <div class="flex items-center">
+                                                <input type="checkbox" id="materialWater" name="materials[]" value="water" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" checked>
+                                                <label for="materialWater" class="ml-2 text-sm text-gray-700">Water</label>
+                                            </div>
+                                            <div class="flex items-center">
+                                                <input type="checkbox" id="materialVitamin" name="materials[]" value="vitamin" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" checked>
+                                                <label for="materialVitamin" class="ml-2 text-sm text-gray-700">Vitamin</label>
+                                            </div>
+                                            <div class="flex items-center">
+                                                <input type="checkbox" id="materialGrains" name="materials[]" value="grains" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" checked>
+                                                <label for="materialGrains" class="ml-2 text-sm text-gray-700">Grains</label>
+                                            </div>
+                                            <div class="flex items-center">
+                                                <input type="checkbox" id="materialAdditives" name="materials[]" value="additives" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                                                <label for="materialAdditives" class="ml-2 text-sm text-gray-700">Additives</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Submit Button -->
+                                    <div class="pt-3">
+                                        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition-colors">
+                                            Create PO
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Handle FIFO toggle
+        document.getElementById('fifoToggle').addEventListener('change', function() {
+            const statusMessage = document.createElement('div');
+            statusMessage.className = 'fixed top-4 right-4 bg-gray-800 text-white px-4 py-2 rounded-md shadow-lg z-50';
+            statusMessage.style.opacity = '0';
+            statusMessage.style.transition = 'opacity 0.3s ease-in-out';
+            
+            if (this.checked) {
+                statusMessage.textContent = 'FIFO Execution Enabled';
+            } else {
+                statusMessage.textContent = 'FIFO Execution Disabled';
+            }
+            
+            document.body.appendChild(statusMessage);
+            
+            // Fade in
+            setTimeout(() => {
+                statusMessage.style.opacity = '1';
+            }, 10);
+            
+            // Fade out and remove
+            setTimeout(() => {
+                statusMessage.style.opacity = '0';
+                setTimeout(() => {
+                    document.body.removeChild(statusMessage);
+                }, 300);
+            }, 2000);
+        });
+        
+        // Handle form submission
+        document.getElementById('poForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Get form values
+            const poId = document.getElementById('poId').value;
+            const setpoint = document.getElementById('setpoint').value;
+            const shift = document.getElementById('shift').value;
+            
+            // Create success message
+            const successMessage = document.createElement('div');
+            successMessage.className = 'fixed top-4 right-4 bg-green-600 text-white px-4 py-2 rounded-md shadow-lg z-50 flex items-center';
+            successMessage.style.opacity = '0';
+            successMessage.style.transition = 'opacity 0.3s ease-in-out';
+            
+            successMessage.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                </svg>
+                Process Order ${poId} created successfully
+            `;
+            
+            document.body.appendChild(successMessage);
+            
+            // Fade in
+            setTimeout(() => {
+                successMessage.style.opacity = '1';
+            }, 10);
+            
+            // Fade out and remove
+            setTimeout(() => {
+                successMessage.style.opacity = '0';
+                setTimeout(() => {
+                    document.body.removeChild(successMessage);
+                }, 300);
+            }, 3000);
+            
+            // Reset form
+            this.reset();
+        });
+        
+        // Handle confirmation buttons
+        document.querySelectorAll('button:not([type="submit"])').forEach(button => {
+            if (!button.classList.contains('cursor-not-allowed')) {
+                button.addEventListener('click', function() {
+                    const row = this.closest('tr');
+                    const poId = row.querySelector('.text-sm.font-medium.text-gray-900').textContent;
+                    const statusCell = row.querySelector('td:nth-child(3)');
+                    
+                    // Update status to "In Progress"
+                    statusCell.innerHTML = '<span class="status-badge status-in-progress">In Progress</span>';
+                    
+                    // Create notification
+                    const notification = document.createElement('div');
+                    notification.className = 'fixed top-4 right-4 bg-blue-600 text-white px-4 py-2 rounded-md shadow-lg z-50 flex items-center';
+                    notification.style.opacity = '0';
+                    notification.style.transition = 'opacity 0.3s ease-in-out';
+                    
+                    notification.innerHTML = `
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v3.586L7.707 9.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 10.586V7z" clip-rule="evenodd" />
+                        </svg>
+                        Process Order ${poId} confirmed
+                    `;
+                    
+                    document.body.appendChild(notification);
+                    
+                    // Fade in
+                    setTimeout(() => {
+                        notification.style.opacity = '1';
+                    }, 10);
+                    
+                    // Fade out and remove
+                    setTimeout(() => {
+                        notification.style.opacity = '0';
+                        setTimeout(() => {
+                            document.body.removeChild(notification);
+                        }, 300);
+                    }, 3000);
+                });
+            }
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9494f498031a9a7b',t:'MTc0ODg0NjM4Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>

@@ -1,0 +1,1402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Simulation Controls</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8;
+        }
+        
+        .card {
+            background-color: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+            transition: all 0.3s ease;
+        }
+        
+        .card:hover {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        
+        .form-input {
+            width: 100%;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.375rem;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+            transition: all 0.15s ease-in-out;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+        }
+        
+        .form-label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #4b5563;
+            margin-bottom: 0.5rem;
+        }
+        
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 0.375rem;
+            font-weight: 500;
+            font-size: 0.875rem;
+            padding: 0.5rem 1rem;
+            transition: all 0.15s ease-in-out;
+            cursor: pointer;
+        }
+        
+        .btn-primary {
+            background-color: #3b82f6;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #2563eb;
+        }
+        
+        .btn-danger {
+            background-color: #ef4444;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background-color: #dc2626;
+        }
+        
+        .btn-warning {
+            background-color: #f59e0b;
+            color: white;
+        }
+        
+        .btn-warning:hover {
+            background-color: #d97706;
+        }
+        
+        .btn-success {
+            background-color: #10b981;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background-color: #059669;
+        }
+        
+        .btn-secondary {
+            background-color: #6b7280;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #4b5563;
+        }
+        
+        .btn-outline {
+            background-color: transparent;
+            border: 1px solid #e5e7eb;
+            color: #4b5563;
+        }
+        
+        .btn-outline:hover {
+            background-color: #f9fafb;
+        }
+        
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.125rem 0.625rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        
+        .badge-blue {
+            background-color: #dbeafe;
+            color: #1e40af;
+        }
+        
+        .badge-green {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+        
+        .badge-red {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+        
+        .badge-yellow {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+        
+        .badge-purple {
+            background-color: #ede9fe;
+            color: #5b21b6;
+        }
+        
+        .badge-gray {
+            background-color: #f3f4f6;
+            color: #4b5563;
+        }
+        
+        .tab {
+            padding: 0.75rem 1rem;
+            font-weight: 500;
+            font-size: 0.875rem;
+            border-bottom: 2px solid transparent;
+            transition: all 0.15s ease-in-out;
+            cursor: pointer;
+        }
+        
+        .tab.active {
+            color: #3b82f6;
+            border-bottom-color: #3b82f6;
+        }
+        
+        .tab:hover:not(.active) {
+            color: #4b5563;
+            border-bottom-color: #e5e7eb;
+        }
+        
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 48px;
+            height: 24px;
+        }
+        
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #e5e7eb;
+            transition: .4s;
+            border-radius: 24px;
+        }
+        
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .toggle-slider {
+            background-color: #3b82f6;
+        }
+        
+        input:checked + .toggle-slider:before {
+            transform: translateX(24px);
+        }
+        
+        .notification {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            background-color: white;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            z-index: 50;
+            max-width: 24rem;
+            display: flex;
+            align-items: center;
+            animation: slideIn 0.3s ease-out forwards;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+        
+        .notification.hide {
+            animation: slideOut 0.3s ease-in forwards;
+        }
+        
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .tooltip .tooltip-text {
+            visibility: hidden;
+            width: 200px;
+            background-color: #374151;
+            color: white;
+            text-align: center;
+            border-radius: 6px;
+            padding: 0.5rem;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -100px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.75rem;
+        }
+        
+        .tooltip .tooltip-text::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #374151 transparent transparent transparent;
+        }
+        
+        .tooltip:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+        
+        .material-row {
+            transition: all 0.2s ease-in-out;
+        }
+        
+        .material-row:hover {
+            background-color: #f9fafb;
+        }
+        
+        .material-row.editing {
+            background-color: #f0f9ff;
+            border-left: 3px solid #3b82f6;
+        }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <ul style="list-style:none; display:flex; gap:20px; padding:10px; background:#ffffff;">
+          <li><a href="Dashboard.html" style="color: rgb(0, 0, 0);">Home Page</a></li>
+          <li><a href="Process_Order.html" style="color: rgb(0, 0, 0);">Process Order Page</a></li>
+          <li><a href="System_Monitoring.html" style="color: rgb(0, 0, 0);">System Monitoring Page</a></li>
+          <li><a href="Data_Flow.html" style="color: rgb(0, 0, 0);">Data Flow Page</a></li>
+          <li><a href="Admin_Panel.html" style="color: rgb(0, 0, 0);"> Admin Page </a></li>
+        </ul>
+      </nav>
+    
+
+    <div class="min-h-screen">
+        <!-- Header -->
+        <header class="bg-white shadow-sm">
+            <div class="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex justify-between items-center">
+                <div class="flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-indigo-600 mr-3" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd" />
+                    </svg>
+                    <h1 class="text-2xl font-bold text-gray-800">Admin Panel</h1>
+                    <span class="ml-3 bg-indigo-100 text-indigo-800 text-xs font-semibold px-2.5 py-0.5 rounded-full">Simulation Controls</span>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <span class="text-sm text-gray-500" id="currentTime">Loading time...</span>
+                    <div class="relative">
+                        <button class="flex items-center text-gray-700 hover:text-gray-900">
+                            <span class="mr-2 text-sm font-medium">Admin User</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 rounded-full bg-gray-200 p-1" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+        
+        <!-- Navigation Tabs -->
+        <div class="bg-white shadow-sm">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex space-x-8">
+                    <button class="tab active" data-tab="kpi">KPI Management</button>
+                    <button class="tab" data-tab="override">System Overrides</button>
+                    <button class="tab" data-tab="materials">Material List</button>
+                </div>
+            </div>
+        </div>
+        
+        <main class="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
+            <!-- KPI Management Tab -->
+            <div id="kpi-tab" class="tab-content">
+                <div class="mb-6">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4">KPI Management</h2>
+                    <p class="text-gray-600 mb-6">Create and manage Key Performance Indicators for system monitoring and reporting.</p>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- Add New KPI Form -->
+                        <div class="lg:col-span-1">
+                            <div class="card p-6">
+                                <h3 class="text-lg font-semibold text-gray-800 mb-4">Add New KPI</h3>
+                                <form id="kpi-form">
+                                    <div class="mb-4">
+                                        <label for="kpi-name" class="form-label">KPI Name</label>
+                                        <input type="text" id="kpi-name" class="form-input" placeholder="e.g. Production Efficiency">
+                                    </div>
+                                    
+                                    <div class="mb-4">
+                                        <label for="kpi-description" class="form-label">Description</label>
+                                        <textarea id="kpi-description" class="form-input" rows="3" placeholder="Describe the purpose of this KPI"></textarea>
+                                    </div>
+                                    
+                                    <div class="mb-4">
+                                        <label for="kpi-formula" class="form-label flex items-center">
+                                            <span>Formula (optional)</span>
+                                            <div class="tooltip ml-2">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+                                                </svg>
+                                                <span class="tooltip-text">Use variables like {production_count}, {defect_rate}, etc.</span>
+                                            </div>
+                                        </label>
+                                        <input type="text" id="kpi-formula" class="form-input" placeholder="e.g. {production_count} / {total_hours}">
+                                    </div>
+                                    
+                                    <div class="mb-4">
+                                        <label for="kpi-category" class="form-label">Category</label>
+                                        <select id="kpi-category" class="form-input">
+                                            <option value="production">Production</option>
+                                            <option value="quality">Quality</option>
+                                            <option value="maintenance">Maintenance</option>
+                                            <option value="energy">Energy</option>
+                                            <option value="custom">Custom</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="mb-4">
+                                        <label for="kpi-threshold" class="form-label">Target Threshold</label>
+                                        <input type="number" id="kpi-threshold" class="form-input" placeholder="e.g. 95">
+                                    </div>
+                                    
+                                    <div class="mb-4">
+                                        <label class="form-label">Display Options</label>
+                                        <div class="flex items-center space-x-4">
+                                            <label class="inline-flex items-center">
+                                                <input type="checkbox" class="rounded text-blue-600" checked>
+                                                <span class="ml-2 text-sm text-gray-700">Dashboard</span>
+                                            </label>
+                                            <label class="inline-flex items-center">
+                                                <input type="checkbox" class="rounded text-blue-600">
+                                                <span class="ml-2 text-sm text-gray-700">Reports</span>
+                                            </label>
+                                            <label class="inline-flex items-center">
+                                                <input type="checkbox" class="rounded text-blue-600">
+                                                <span class="ml-2 text-sm text-gray-700">Alerts</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="flex justify-end">
+                                        <button type="button" class="btn btn-outline mr-2">Cancel</button>
+                                        <button type="button" id="add-kpi-btn" class="btn btn-primary">Add KPI</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                        
+                        <!-- Existing KPIs -->
+                        <div class="lg:col-span-2">
+                            <div class="card p-6">
+                                <div class="flex justify-between items-center mb-4">
+                                    <h3 class="text-lg font-semibold text-gray-800">Existing KPIs</h3>
+                                    <div class="flex space-x-2">
+                                        <div class="relative">
+                                            <input type="text" placeholder="Search KPIs..." class="form-input pr-8 py-1.5 text-sm">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400 absolute right-3 top-2" viewBox="0 0 20 20" fill="currentColor">
+                                                <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+                                            </svg>
+                                        </div>
+                                        <select class="form-input py-1.5 text-sm">
+                                            <option>All Categories</option>
+                                            <option>Production</option>
+                                            <option>Quality</option>
+                                            <option>Maintenance</option>
+                                            <option>Energy</option>
+                                            <option>Custom</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <div class="overflow-x-auto">
+                                    <table class="min-w-full divide-y divide-gray-200">
+                                        <thead>
+                                            <tr>
+                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Target</th>
+                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="bg-white divide-y divide-gray-200" id="kpi-table-body">
+                                            <tr>
+                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                    <div class="text-sm font-medium text-gray-900">Production Efficiency</div>
+                                                    <div class="text-xs text-gray-500">Units produced per hour</div>
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                    <span class="badge badge-blue">Production</span>
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                    95%
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                    <span class="badge badge-green">Active</span>
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                                    <button class="text-indigo-600 hover:text-indigo-900 mr-3">Edit</button>
+                                                    <button class="text-red-600 hover:text-red-900">Delete</button>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                    <div class="text-sm font-medium text-gray-900">Quality Rate</div>
+                                                    <div class="text-xs text-gray-500">Good units / Total units</div>
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                    <span class="badge badge-purple">Quality</span>
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                    99.5%
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                    <span class="badge badge-green">Active</span>
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                                    <button class="text-indigo-600 hover:text-indigo-900 mr-3">Edit</button>
+                                                    <button class="text-red-600 hover:text-red-900">Delete</button>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                    <div class="text-sm font-medium text-gray-900">Energy Consumption</div>
+                                                    <div class="text-xs text-gray-500">kWh per unit produced</div>
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                    <span class="badge badge-yellow">Energy</span>
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                    < 0.5 kWh
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                    <span class="badge badge-gray">Inactive</span>
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                                    <button class="text-indigo-600 hover:text-indigo-900 mr-3">Edit</button>
+                                                    <button class="text-red-600 hover:text-red-900">Delete</button>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                    <div class="text-sm font-medium text-gray-900">Maintenance Downtime</div>
+                                                    <div class="text-xs text-gray-500">Hours of unplanned downtime</div>
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                    <span class="badge badge-red">Maintenance</span>
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                    < 2 hours/week
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                    <span class="badge badge-green">Active</span>
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                                    <button class="text-indigo-600 hover:text-indigo-900 mr-3">Edit</button>
+                                                    <button class="text-red-600 hover:text-red-900">Delete</button>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- System Overrides Tab -->
+            <div id="override-tab" class="tab-content hidden">
+                <div class="mb-6">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4">System Overrides</h2>
+                    <p class="text-gray-600 mb-6">Control system behavior for testing and demonstration purposes.</p>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- Inject Test Error -->
+                        <div class="card p-6">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4">Inject Test Error</h3>
+                            <p class="text-sm text-gray-600 mb-4">Simulate system errors for testing error handling and notifications.</p>
+                            
+                            <div class="space-y-4">
+                                <div class="border border-gray-200 rounded-md p-4">
+                                    <label class="flex items-center justify-between">
+                                        <div>
+                                            <span class="text-sm font-medium text-gray-700">Sensor Failure</span>
+                                            <p class="text-xs text-gray-500 mt-1">Simulate a sensor reading failure or timeout</p>
+                                        </div>
+                                        <button class="btn btn-danger" id="sensor-failure-btn">Inject</button>
+                                    </label>
+                                </div>
+                                
+                                <div class="border border-gray-200 rounded-md p-4">
+                                    <label class="flex items-center justify-between">
+                                        <div>
+                                            <span class="text-sm font-medium text-gray-700">SAP Timeout</span>
+                                            <p class="text-xs text-gray-500 mt-1">Simulate a connection timeout with SAP</p>
+                                        </div>
+                                        <button class="btn btn-danger" id="sap-timeout-btn">Inject</button>
+                                    </label>
+                                </div>
+                                
+                                <div class="border border-gray-200 rounded-md p-4">
+                                    <label class="flex items-center justify-between">
+                                        <div>
+                                            <span class="text-sm font-medium text-gray-700">Database Error</span>
+                                            <p class="text-xs text-gray-500 mt-1">Simulate a database query failure</p>
+                                        </div>
+                                        <button class="btn btn-danger" id="db-error-btn">Inject</button>
+                                    </label>
+                                </div>
+                                
+                                <div class="border border-gray-200 rounded-md p-4">
+                                    <label class="flex items-center justify-between">
+                                        <div>
+                                            <span class="text-sm font-medium text-gray-700">Network Latency</span>
+                                            <p class="text-xs text-gray-500 mt-1">Simulate high network latency</p>
+                                        </div>
+                                        <button class="btn btn-danger" id="network-latency-btn">Inject</button>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Trigger Manual Actions -->
+                        <div class="card p-6">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4">Trigger Manual Actions</h3>
+                            <p class="text-sm text-gray-600 mb-4">Manually trigger system processes and synchronization.</p>
+                            
+                            <div class="space-y-4">
+                                <div class="border border-gray-200 rounded-md p-4">
+                                    <label class="flex items-center justify-between">
+                                        <div>
+                                            <span class="text-sm font-medium text-gray-700">Manual Sync Cycle</span>
+                                            <p class="text-xs text-gray-500 mt-1">Trigger a full data synchronization cycle</p>
+                                        </div>
+                                        <button class="btn btn-primary" id="sync-cycle-btn">Trigger</button>
+                                    </label>
+                                </div>
+                                
+                                <div class="border border-gray-200 rounded-md p-4">
+                                    <label class="flex items-center justify-between">
+                                        <div>
+                                            <span class="text-sm font-medium text-gray-700">Generate Report</span>
+                                            <p class="text-xs text-gray-500 mt-1">Generate a system status report</p>
+                                        </div>
+                                        <button class="btn btn-primary" id="generate-report-btn">Generate</button>
+                                    </label>
+                                </div>
+                                
+                                <div class="border border-gray-200 rounded-md p-4">
+                                    <label class="flex items-center justify-between">
+                                        <div>
+                                            <span class="text-sm font-medium text-gray-700">Validation Check</span>
+                                            <p class="text-xs text-gray-500 mt-1">Run a full system validation check</p>
+                                        </div>
+                                        <button class="btn btn-primary" id="validation-check-btn">Run</button>
+                                    </label>
+                                </div>
+                                
+                                <div class="border border-gray-200 rounded-md p-4">
+                                    <label class="flex items-center justify-between">
+                                        <div>
+                                            <span class="text-sm font-medium text-gray-700">Clear Cache</span>
+                                            <p class="text-xs text-gray-500 mt-1">Clear system cache and temporary files</p>
+                                        </div>
+                                        <button class="btn btn-primary" id="clear-cache-btn">Clear</button>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Reset System Flags -->
+                        <div class="card p-6">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4">Reset System Flags</h3>
+                            <p class="text-sm text-gray-600 mb-4">Reset various system flags and counters.</p>
+                            
+                            <div class="space-y-4">
+                                <div class="border border-gray-200 rounded-md p-4">
+                                    <label class="flex items-center justify-between">
+                                        <div>
+                                            <span class="text-sm font-medium text-gray-700">Error Flags</span>
+                                            <p class="text-xs text-gray-500 mt-1">Reset all error flags to resolved state</p>
+                                        </div>
+                                        <button class="btn btn-warning" id="reset-errors-btn">Reset</button>
+                                    </label>
+                                </div>
+                                
+                                <div class="border border-gray-200 rounded-md p-4">
+                                    <label class="flex items-center justify-between">
+                                        <div>
+                                            <span class="text-sm font-medium text-gray-700">Event Log</span>
+                                            <p class="text-xs text-gray-500 mt-1">Clear the event log history</p>
+                                        </div>
+                                        <button class="btn btn-warning" id="clear-log-btn">Clear</button>
+                                    </label>
+                                </div>
+                                
+                                <div class="border border-gray-200 rounded-md p-4">
+                                    <label class="flex items-center justify-between">
+                                        <div>
+                                            <span class="text-sm font-medium text-gray-700">Performance Counters</span>
+                                            <p class="text-xs text-gray-500 mt-1">Reset all performance counters</p>
+                                        </div>
+                                        <button class="btn btn-warning" id="reset-counters-btn">Reset</button>
+                                    </label>
+                                </div>
+                                
+                                <div class="border border-gray-200 rounded-md p-4">
+                                    <label class="flex items-center justify-between">
+                                        <div>
+                                            <span class="text-sm font-medium text-gray-700">Connection Status</span>
+                                            <p class="text-xs text-gray-500 mt-1">Reset all connection statuses</p>
+                                        </div>
+                                        <button class="btn btn-warning" id="reset-connections-btn">Reset</button>
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-6 pt-4 border-t border-gray-200">
+                                <button class="btn btn-danger w-full flex items-center justify-center" id="reset-all-btn">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd" />
+                                    </svg>
+                                    Reset All System Flags
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- System Status -->
+                    <div class="mt-6">
+                        <div class="card p-6">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4">System Status</h3>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                                <div class="bg-gray-50 p-4 rounded-md">
+                                    <div class="text-sm font-medium text-gray-500">Active Errors</div>
+                                    <div class="mt-1 flex items-center">
+                                        <span class="text-2xl font-bold text-gray-900">3</span>
+                                        <span class="ml-2 badge badge-red">High: 1</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="bg-gray-50 p-4 rounded-md">
+                                    <div class="text-sm font-medium text-gray-500">Last Sync</div>
+                                    <div class="mt-1 flex items-center">
+                                        <span class="text-sm font-medium text-gray-900">10:45 AM</span>
+                                        <span class="ml-2 badge badge-green">Success</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="bg-gray-50 p-4 rounded-md">
+                                    <div class="text-sm font-medium text-gray-500">System Load</div>
+                                    <div class="mt-1">
+                                        <div class="flex items-center">
+                                            <span class="text-sm font-medium text-gray-900">42%</span>
+                                        </div>
+                                        <div class="w-full bg-gray-200 rounded-full h-2 mt-1">
+                                            <div class="bg-green-500 h-2 rounded-full" style="width: 42%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="bg-gray-50 p-4 rounded-md">
+                                    <div class="text-sm font-medium text-gray-500">Active Sessions</div>
+                                    <div class="mt-1 flex items-center">
+                                        <span class="text-2xl font-bold text-gray-900">7</span>
+                                        <span class="ml-2 text-xs text-gray-500">Users: 5, System: 2</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Material List Tab -->
+            <div id="materials-tab" class="tab-content hidden">
+                <div class="mb-6">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4">Material List Management</h2>
+                    <p class="text-gray-600 mb-6">Add, edit, and manage materials used in production orders.</p>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                        <!-- Add/Edit Material Form -->
+                        <div class="lg:col-span-1">
+                            <div class="card p-6">
+                                <h3 class="text-lg font-semibold text-gray-800 mb-4" id="material-form-title">Add New Material</h3>
+                                <form id="material-form">
+                                    <input type="hidden" id="material-id" value="">
+                                    
+                                    <div class="mb-4">
+                                        <label for="material-code" class="form-label">Material Code</label>
+                                        <input type="text" id="material-code" class="form-input" placeholder="e.g. MAT-1001">
+                                    </div>
+                                    
+                                    <div class="mb-4">
+                                        <label for="material-name" class="form-label">Material Name</label>
+                                        <input type="text" id="material-name" class="form-input" placeholder="e.g. Aluminum Sheet">
+                                    </div>
+                                    
+                                    <div class="mb-4">
+                                        <label for="material-category" class="form-label">Category</label>
+                                        <select id="material-category" class="form-input">
+                                            <option value="raw">Raw Material</option>
+                                            <option value="component">Component</option>
+                                            <option value="packaging">Packaging</option>
+                                            <option value="finished">Finished Good</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="mb-4">
+                                        <label for="material-unit" class="form-label">Unit of Measure</label>
+                                        <select id="material-unit" class="form-input">
+                                            <option value="kg">Kilogram (kg)</option>
+                                            <option value="g">Gram (g)</option>
+                                            <option value="l">Liter (L)</option>
+                                            <option value="m">Meter (m)</option>
+                                            <option value="pcs">Piece (pcs)</option>
+                                            <option value="box">Box</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="mb-4">
+                                        <label for="material-stock" class="form-label">Current Stock</label>
+                                        <input type="number" id="material-stock" class="form-input" placeholder="e.g. 1000">
+                                    </div>
+                                    
+                                    <div class="mb-4">
+                                        <label for="material-price" class="form-label">Unit Price</label>
+                                        <div class="relative">
+                                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                <span class="text-gray-500 sm:text-sm">$</span>
+                                            </div>
+                                            <input type="number" id="material-price" class="form-input pl-7" placeholder="0.00" step="0.01">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="flex justify-end">
+                                        <button type="button" id="cancel-material-btn" class="btn btn-outline mr-2">Cancel</button>
+                                        <button type="button" id="save-material-btn" class="btn btn-primary">Add Material</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                        
+                        <!-- Material List -->
+                        <div class="lg:col-span-3">
+                            <div class="card p-6">
+                                <div class="flex justify-between items-center mb-4">
+                                    <h3 class="text-lg font-semibold text-gray-800">Material List</h3>
+                                    <div class="flex space-x-2">
+                                        <div class="relative">
+                                            <input type="text" placeholder="Search materials..." class="form-input pr-8 py-1.5 text-sm">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400 absolute right-3 top-2" viewBox="0 0 20 20" fill="currentColor">
+                                                <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+                                            </svg>
+                                        </div>
+                                        <select class="form-input py-1.5 text-sm">
+                                            <option>All Categories</option>
+                                            <option>Raw Material</option>
+                                            <option>Component</option>
+                                            <option>Packaging</option>
+                                            <option>Finished Good</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <div class="overflow-x-auto">
+                                    <table class="min-w-full divide-y divide-gray-200">
+                                        <thead>
+                                            <tr>
+                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Code</th>
+                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stock</th>
+                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="bg-white divide-y divide-gray-200" id="material-table-body">
+                                            <tr class="material-row" data-id="1">
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">MAT-1001</td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Aluminum Sheet</td>
+                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                    <span class="badge badge-blue">Raw Material</span>
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                    1,250 kg
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                    $3.75
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                                    <button class="text-indigo-600 hover:text-indigo-900 mr-3 edit-material-btn">Edit</button>
+                                                    <button class="text-red-600 hover:text-red-900 delete-material-btn">Delete</button>
+                                                </td>
+                                            </tr>
+                                            <tr class="material-row" data-id="2">
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">MAT-1002</td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Steel Rod</td>
+                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                    <span class="badge badge-blue">Raw Material</span>
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                    850 kg
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                    $2.25
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                                    <button class="text-indigo-600 hover:text-indigo-900 mr-3 edit-material-btn">Edit</button>
+                                                    <button class="text-red-600 hover:text-red-900 delete-material-btn">Delete</button>
+                                                </td>
+                                            </tr>
+                                            <tr class="material-row" data-id="3">
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">MAT-2001</td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Bearing Assembly</td>
+                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                    <span class="badge badge-purple">Component</span>
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                    500 pcs
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                    $12.50
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                                    <button class="text-indigo-600 hover:text-indigo-900 mr-3 edit-material-btn">Edit</button>
+                                                    <button class="text-red-600 hover:text-red-900 delete-material-btn">Delete</button>
+                                                </td>
+                                            </tr>
+                                            <tr class="material-row" data-id="4">
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">MAT-3001</td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Cardboard Box (Large)</td>
+                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                    <span class="badge badge-yellow">Packaging</span>
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                    2,000 pcs
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                    $1.15
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                                    <button class="text-indigo-600 hover:text-indigo-900 mr-3 edit-material-btn">Edit</button>
+                                                    <button class="text-red-600 hover:text-red-900 delete-material-btn">Delete</button>
+                                                </td>
+                                            </tr>
+                                            <tr class="material-row" data-id="5">
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">MAT-4001</td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Electric Motor (Model A)</td>
+                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                    <span class="badge badge-green">Finished Good</span>
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                    120 pcs
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                    $85.00
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                                    <button class="text-indigo-600 hover:text-indigo-900 mr-3 edit-material-btn">Edit</button>
+                                                    <button class="text-red-600 hover:text-red-900 delete-material-btn">Delete</button>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                
+                                <!-- Pagination -->
+                                <div class="px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6 mt-4">
+                                    <div class="flex-1 flex justify-between sm:hidden">
+                                        <a href="#" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                                            Previous
+                                        </a>
+                                        <a href="#" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                                            Next
+                                        </a>
+                                    </div>
+                                    <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                                        <div>
+                                            <p class="text-sm text-gray-700">
+                                                Showing <span class="font-medium">1</span> to <span class="font-medium">5</span> of <span class="font-medium">12</span> materials
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                                                <a href="#" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                                    <span class="sr-only">Previous</span>
+                                                    <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                                        <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                                    </svg>
+                                                </a>
+                                                <a href="#" aria-current="page" class="z-10 bg-indigo-50 border-indigo-500 text-indigo-600 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+                                                    1
+                                                </a>
+                                                <a href="#" class="bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+                                                    2
+                                                </a>
+                                                <a href="#" class="bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium">
+                                                    3
+                                                </a>
+                                                <a href="#" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                                    <span class="sr-only">Next</span>
+                                                    <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                                        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                                                    </svg>
+                                                </a>
+                                            </nav>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Update current time
+        function updateTime() {
+            const now = new Date();
+            const options = { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            };
+            document.getElementById('currentTime').textContent = now.toLocaleDateString('en-US', options);
+        }
+        
+        updateTime();
+        setInterval(updateTime, 1000);
+        
+        // Tab switching
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                // Remove active class from all tabs
+                document.querySelectorAll('.tab').forEach(t => {
+                    t.classList.remove('active');
+                });
+                
+                // Add active class to clicked tab
+                this.classList.add('active');
+                
+                // Hide all tab content
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.classList.add('hidden');
+                });
+                
+                // Show the selected tab content
+                const tabId = this.getAttribute('data-tab');
+                document.getElementById(tabId + '-tab').classList.remove('hidden');
+            });
+        });
+        
+        // Add KPI functionality
+        document.getElementById('add-kpi-btn').addEventListener('click', function() {
+            const kpiName = document.getElementById('kpi-name').value;
+            const kpiDescription = document.getElementById('kpi-description').value;
+            const kpiCategory = document.getElementById('kpi-category').value;
+            const kpiThreshold = document.getElementById('kpi-threshold').value;
+            
+            if (kpiName && kpiDescription) {
+                // Create new KPI row
+                const tableBody = document.getElementById('kpi-table-body');
+                const newRow = document.createElement('tr');
+                
+                let categoryBadgeClass = 'badge-blue';
+                if (kpiCategory === 'quality') categoryBadgeClass = 'badge-purple';
+                if (kpiCategory === 'maintenance') categoryBadgeClass = 'badge-red';
+                if (kpiCategory === 'energy') categoryBadgeClass = 'badge-yellow';
+                
+                newRow.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm font-medium text-gray-900">${kpiName}</div>
+                        <div class="text-xs text-gray-500">${kpiDescription}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="badge ${categoryBadgeClass}">${kpiCategory.charAt(0).toUpperCase() + kpiCategory.slice(1)}</span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        ${kpiThreshold}%
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="badge badge-green">Active</span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <button class="text-indigo-600 hover:text-indigo-900 mr-3">Edit</button>
+                        <button class="text-red-600 hover:text-red-900">Delete</button>
+                    </td>
+                `;
+                
+                tableBody.prepend(newRow);
+                
+                // Clear form
+                document.getElementById('kpi-name').value = '';
+                document.getElementById('kpi-description').value = '';
+                document.getElementById('kpi-formula').value = '';
+                document.getElementById('kpi-threshold').value = '';
+                
+                // Show notification
+                showNotification('KPI added successfully', 'success');
+            } else {
+                showNotification('Please fill in all required fields', 'error');
+            }
+        });
+        
+        // Material form functionality
+        let editingMaterialId = null;
+        
+        document.getElementById('save-material-btn').addEventListener('click', function() {
+            const materialCode = document.getElementById('material-code').value;
+            const materialName = document.getElementById('material-name').value;
+            const materialCategory = document.getElementById('material-category').value;
+            const materialUnit = document.getElementById('material-unit').value;
+            const materialStock = document.getElementById('material-stock').value;
+            const materialPrice = document.getElementById('material-price').value;
+            
+            if (materialCode && materialName && materialStock && materialPrice) {
+                if (editingMaterialId) {
+                    // Update existing material
+                    const row = document.querySelector(`.material-row[data-id="${editingMaterialId}"]`);
+                    
+                    let categoryBadgeClass = 'badge-blue';
+                    let categoryText = 'Raw Material';
+                    
+                    if (materialCategory === 'component') {
+                        categoryBadgeClass = 'badge-purple';
+                        categoryText = 'Component';
+                    } else if (materialCategory === 'packaging') {
+                        categoryBadgeClass = 'badge-yellow';
+                        categoryText = 'Packaging';
+                    } else if (materialCategory === 'finished') {
+                        categoryBadgeClass = 'badge-green';
+                        categoryText = 'Finished Good';
+                    }
+                    
+                    row.innerHTML = `
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${materialCode}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${materialName}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="badge ${categoryBadgeClass}">${categoryText}</span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            ${materialStock} ${materialUnit}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            $${parseFloat(materialPrice).toFixed(2)}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <button class="text-indigo-600 hover:text-indigo-900 mr-3 edit-material-btn">Edit</button>
+                            <button class="text-red-600 hover:text-red-900 delete-material-btn">Delete</button>
+                        </td>
+                    `;
+                    
+                    row.classList.remove('editing');
+                    
+                    // Reset form
+                    document.getElementById('material-form-title').textContent = 'Add New Material';
+                    document.getElementById('save-material-btn').textContent = 'Add Material';
+                    editingMaterialId = null;
+                    
+                    showNotification('Material updated successfully', 'success');
+                } else {
+                    // Add new material
+                    const tableBody = document.getElementById('material-table-body');
+                    const newRow = document.createElement('tr');
+                    const newId = Date.now(); // Generate a unique ID
+                    newRow.classList.add('material-row');
+                    newRow.setAttribute('data-id', newId);
+                    
+                    let categoryBadgeClass = 'badge-blue';
+                    let categoryText = 'Raw Material';
+                    
+                    if (materialCategory === 'component') {
+                        categoryBadgeClass = 'badge-purple';
+                        categoryText = 'Component';
+                    } else if (materialCategory === 'packaging') {
+                        categoryBadgeClass = 'badge-yellow';
+                        categoryText = 'Packaging';
+                    } else if (materialCategory === 'finished') {
+                        categoryBadgeClass = 'badge-green';
+                        categoryText = 'Finished Good';
+                    }
+                    
+                    newRow.innerHTML = `
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${materialCode}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${materialName}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="badge ${categoryBadgeClass}">${categoryText}</span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            ${materialStock} ${materialUnit}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            $${parseFloat(materialPrice).toFixed(2)}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <button class="text-indigo-600 hover:text-indigo-900 mr-3 edit-material-btn">Edit</button>
+                            <button class="text-red-600 hover:text-red-900 delete-material-btn">Delete</button>
+                        </td>
+                    `;
+                    
+                    tableBody.prepend(newRow);
+                    
+                    showNotification('Material added successfully', 'success');
+                }
+                
+                // Clear form
+                document.getElementById('material-code').value = '';
+                document.getElementById('material-name').value = '';
+                document.getElementById('material-stock').value = '';
+                document.getElementById('material-price').value = '';
+                
+                // Add event listeners to new buttons
+                addMaterialButtonListeners();
+            } else {
+                showNotification('Please fill in all required fields', 'error');
+            }
+        });
+        
+        document.getElementById('cancel-material-btn').addEventListener('click', function() {
+            // Reset form
+            document.getElementById('material-form-title').textContent = 'Add New Material';
+            document.getElementById('save-material-btn').textContent = 'Add Material';
+            document.getElementById('material-code').value = '';
+            document.getElementById('material-name').value = '';
+            document.getElementById('material-stock').value = '';
+            document.getElementById('material-price').value = '';
+            editingMaterialId = null;
+            
+            // Remove editing class from any row
+            document.querySelectorAll('.material-row').forEach(row => {
+                row.classList.remove('editing');
+            });
+        });
+        
+        function addMaterialButtonListeners() {
+            // Edit material buttons
+            document.querySelectorAll('.edit-material-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const row = this.closest('tr');
+                    const id = row.getAttribute('data-id');
+                    
+                    // Mark this row as being edited
+                    document.querySelectorAll('.material-row').forEach(r => {
+                        r.classList.remove('editing');
+                    });
+                    row.classList.add('editing');
+                    
+                    // Get data from row
+                    const code = row.cells[0].textContent;
+                    const name = row.cells[1].textContent;
+                    const categorySpan = row.cells[2].querySelector('span');
+                    const categoryText = categorySpan.textContent;
+                    const stockText = row.cells[3].textContent.trim();
+                    const priceText = row.cells[4].textContent.trim();
+                    
+                    // Determine category value
+                    let categoryValue = 'raw';
+                    if (categoryText === 'Component') categoryValue = 'component';
+                    if (categoryText === 'Packaging') categoryValue = 'packaging';
+                    if (categoryText === 'Finished Good') categoryValue = 'finished';
+                    
+                    // Extract unit and stock
+                    const stockMatch = stockText.match(/(\d+[\d,]*\.?\d*)\s+(\w+)/);
+                    let stock = '';
+                    let unit = 'pcs';
+                    
+                    if (stockMatch) {
+                        stock = stockMatch[1].replace(/,/g, '');
+                        unit = stockMatch[2];
+                    }
+                    
+                    // Extract price
+                    const price = priceText.replace('$', '');
+                    
+                    // Fill form
+                    document.getElementById('material-code').value = code;
+                    document.getElementById('material-name').value = name;
+                    document.getElementById('material-category').value = categoryValue;
+                    document.getElementById('material-unit').value = unit;
+                    document.getElementById('material-stock').value = stock;
+                    document.getElementById('material-price').value = price;
+                    
+                    // Update form title and button
+                    document.getElementById('material-form-title').textContent = 'Edit Material';
+                    document.getElementById('save-material-btn').textContent = 'Update Material';
+                    
+                    // Set editing ID
+                    editingMaterialId = id;
+                });
+            });
+            
+            // Delete material buttons
+            document.querySelectorAll('.delete-material-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const row = this.closest('tr');
+                    
+                    // Simple confirmation
+                    if (confirm('Are you sure you want to delete this material?')) {
+                        row.remove();
+                        showNotification('Material deleted successfully', 'success');
+                        
+                        // If we were editing this material, reset the form
+                        if (editingMaterialId === row.getAttribute('data-id')) {
+                            document.getElementById('material-form-title').textContent = 'Add New Material';
+                            document.getElementById('save-material-btn').textContent = 'Add Material';
+                            document.getElementById('material-code').value = '';
+                            document.getElementById('material-name').value = '';
+                            document.getElementById('material-stock').value = '';
+                            document.getElementById('material-price').value = '';
+                            editingMaterialId = null;
+                        }
+                    }
+                });
+            });
+        }
+        
+        // Initialize material button listeners
+        addMaterialButtonListeners();
+        
+        // System override buttons
+        const overrideButtons = [
+            'sensor-failure-btn', 'sap-timeout-btn', 'db-error-btn', 'network-latency-btn',
+            'sync-cycle-btn', 'generate-report-btn', 'validation-check-btn', 'clear-cache-btn',
+            'reset-errors-btn', 'clear-log-btn', 'reset-counters-btn', 'reset-connections-btn',
+            'reset-all-btn'
+        ];
+        
+        overrideButtons.forEach(id => {
+            document.getElementById(id).addEventListener('click', function() {
+                const buttonText = this.textContent.trim();
+                const actionType = this.id.includes('btn') ? this.id.replace('-btn', '') : this.id;
+                
+                // Show loading state
+                const originalText = this.textContent;
+                this.disabled = true;
+                this.innerHTML = `
+                    <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Processing...
+                `;
+                
+                // Simulate processing
+                setTimeout(() => {
+                    this.disabled = false;
+                    this.textContent = originalText;
+                    
+                    // Show notification based on action type
+                    if (actionType.includes('error') || actionType.includes('failure') || actionType.includes('timeout') || actionType.includes('latency')) {
+                        showNotification(`Test ${buttonText} injected successfully`, 'warning');
+                    } else if (actionType.includes('reset') || actionType.includes('clear')) {
+                        showNotification(`${buttonText} completed successfully`, 'success');
+                    } else {
+                        showNotification(`${buttonText} action completed successfully`, 'success');
+                    }
+                }, 1500);
+            });
+        });
+        
+        // Notification function
+        function showNotification(message, type = 'info') {
+            // Remove any existing notifications
+            const existingNotifications = document.querySelectorAll('.notification');
+            existingNotifications.forEach(notification => {
+                notification.classList.add('hide');
+                setTimeout(() => {
+                    notification.remove();
+                }, 300);
+            });
+            
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            
+            // Set icon and color based on type
+            let icon = '';
+            let bgColor = '';
+            let textColor = '';
+            
+            if (type === 'success') {
+                icon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>`;
+                bgColor = 'bg-green-50';
+                textColor = 'text-green-800';
+            } else if (type === 'error') {
+                icon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>`;
+                bgColor = 'bg-red-50';
+                textColor = 'text-red-800';
+            } else if (type === 'warning') {
+                icon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>`;
+                bgColor = 'bg-red-50';
+                textColor = 'text-red-800';
+            }}

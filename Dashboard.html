@@ -1,0 +1,555 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SCADA Monitoring Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8;
+        }
+        
+        .status-green {
+            background-color: #10B981;
+        }
+        
+        .status-orange {
+            background-color: #F59E0B;
+        }
+        
+        .status-red {
+            background-color: #EF4444;
+        }
+        
+        .sensor-tile {
+            transition: all 0.3s ease;
+        }
+        
+        .sensor-tile:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .kpi-widget {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .kpi-widget::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, #3B82F6, #10B981);
+        }
+        
+        .sync-pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+            }
+        }
+        
+        .gauge {
+            position: relative;
+            height: 80px;
+            width: 80px;
+        }
+        
+        .gauge-bg {
+            fill: none;
+            stroke: #e5e7eb;
+            stroke-width: 10;
+        }
+        
+        .gauge-fill {
+            fill: none;
+            stroke-width: 10;
+            stroke-linecap: round;
+            transform-origin: center;
+            transform: rotate(-90deg);
+            transition: all 0.5s ease;
+        }
+        
+        .machine-status-running {
+            border-left: 4px solid #10B981;
+        }
+        
+        .machine-status-idle {
+            border-left: 4px solid #F59E0B;
+        }
+        
+        .machine-status-error {
+            border-left: 4px solid #EF4444;
+        }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <ul style="list-style:none; display:flex; gap:20px; padding:10px; background:#ffffff;">
+          <li><a href="Dashboard.html" style="color: rgb(0, 0, 0);">Home Page</a></li>
+          <li><a href="Process_Order.html" style="color: rgb(0, 0, 0);">Process Order Page</a></li>
+          <li><a href="System_Monitoring.html" style="color: rgb(0, 0, 0);">System Monitoring Page</a></li>
+          <li><a href="Data_Flow.html" style="color: rgb(0, 0, 0);">Data Flow Page</a></li>
+          <li><a href="Admin_Panel.html" style="color: rgb(0, 0, 0);"> Admin Page </a></li>
+        </ul>
+      </nav>
+    
+
+    <div class="min-h-screen">
+        <!-- Status Indicator Strip -->
+        <div id="statusStrip" class="status-green py-1 px-4 flex justify-between items-center text-white">
+            <span class="font-medium">All Systems OK</span>
+            <span id="currentTime" class="text-sm opacity-80"></span>
+        </div>
+        
+        <!-- Header -->
+        <header class="bg-white shadow-sm">
+            <div class="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex justify-between items-center">
+                <div class="flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-blue-600 mr-3" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M2 5a2 2 0 012-2h12a2 2 0 012 2v10a2 2 0 01-2 2H4a2 2 0 01-2-2V5zm2 1h12v8H4V6zm3 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd" />
+                    </svg>
+                    <h1 class="text-2xl font-bold text-gray-800">SCADA Monitoring Dashboard</h1>
+                </div>
+                
+                <!-- Shift Tracker -->
+                <div class="bg-blue-50 border border-blue-200 rounded-lg px-4 py-2 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
+                    </svg>
+                    <div>
+                        <span class="text-sm text-blue-600 font-medium">Current Shift</span>
+                        <p class="text-gray-700 font-semibold">Shift 2 - 2:00PM to 10:00PM</p>
+                    </div>
+                </div>
+            </div>
+        </header>
+        
+        <main class="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
+            <!-- SCADA to SAP Sync Button -->
+            <div class="mb-6 bg-white rounded-lg shadow p-4 flex justify-between items-center">
+                <div class="flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-500 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                    </svg>
+                    <div>
+                        <h2 class="text-lg font-semibold text-gray-800">SCADA to SAP Synchronization</h2>
+                        <p id="syncStatus" class="text-sm text-green-600">Status: Synced (Last update: 10:45 AM)</p>
+                    </div>
+                </div>
+                <button id="syncButton" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md flex items-center transition-all">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd" />
+                    </svg>
+                    Sync Now
+                </button>
+            </div>
+            
+            <!-- Live SCADA Data Tiles -->
+            <h2 class="text-xl font-bold text-gray-800 mb-4">Live SCADA Data</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                <!-- Sensor Reading: Weight -->
+                <div class="sensor-tile bg-white rounded-lg shadow overflow-hidden">
+                    <div class="px-4 py-3 bg-gray-50 border-b border-gray-200">
+                        <h3 class="text-sm font-medium text-gray-500">Weight Sensor</h3>
+                    </div>
+                    <div class="p-5">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <div class="text-3xl font-bold text-gray-800" id="weightValue">1,254</div>
+                                <div class="text-sm text-gray-500">kilograms</div>
+                            </div>
+                            <svg class="w-16 h-16 text-blue-100" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
+                            </svg>
+                        </div>
+                        <div class="mt-4 flex items-center text-sm">
+                            <span class="text-green-500 flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V8.414l-4.293 4.293a1 1 0 01-1.414 0L8 10.414l-4.293 4.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0L11 10.586 14.586 7H12z" clip-rule="evenodd" />
+                                </svg>
+                                2.4%
+                            </span>
+                            <span class="text-gray-500 ml-2">from previous batch</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Sensor Reading: Flow -->
+                <div class="sensor-tile bg-white rounded-lg shadow overflow-hidden">
+                    <div class="px-4 py-3 bg-gray-50 border-b border-gray-200">
+                        <h3 class="text-sm font-medium text-gray-500">Flow Rate</h3>
+                    </div>
+                    <div class="p-5">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <div class="text-3xl font-bold text-gray-800" id="flowValue">85.7</div>
+                                <div class="text-sm text-gray-500">liters/minute</div>
+                            </div>
+                            <svg class="w-16 h-16 text-blue-100" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                            </svg>
+                        </div>
+                        <div class="mt-4 flex items-center text-sm">
+                            <span class="text-red-500 flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M12 13a1 1 0 100 2h5a1 1 0 001-1v-5a1 1 0 10-2 0v2.586l-4.293-4.293a1 1 0 00-1.414 0L8 9.586l-4.293-4.293a1 1 0 00-1.414 1.414l5 5a1 1 0 001.414 0L11 9.414 14.586 13H12z" clip-rule="evenodd" />
+                                </svg>
+                                1.2%
+                            </span>
+                            <span class="text-gray-500 ml-2">from optimal flow</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Machine Status -->
+                <div class="sensor-tile bg-white rounded-lg shadow overflow-hidden machine-status-running">
+                    <div class="px-4 py-3 bg-gray-50 border-b border-gray-200">
+                        <h3 class="text-sm font-medium text-gray-500">Machine Status</h3>
+                    </div>
+                    <div class="p-5">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <div class="text-2xl font-bold text-green-600" id="machineStatus">Running</div>
+                                <div class="text-sm text-gray-500">Production Line A</div>
+                            </div>
+                            <div class="relative">
+                                <svg class="w-16 h-16" viewBox="0 0 100 100">
+                                    <circle class="gauge-bg" cx="50" cy="50" r="40"></circle>
+                                    <circle class="gauge-fill" cx="50" cy="50" r="40" stroke="#10B981" stroke-dasharray="226 251" stroke-dashoffset="0"></circle>
+                                    <text x="50" y="55" text-anchor="middle" class="text-xl font-bold" fill="#10B981">90%</text>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="mt-4 flex items-center text-sm">
+                            <span class="text-gray-700">Uptime:</span>
+                            <span class="text-gray-900 font-medium ml-2">4h 23m</span>
+                            <span class="ml-4 text-gray-700">Next Maintenance:</span>
+                            <span class="text-gray-900 font-medium ml-2">18h 30m</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- KPI Summary Widgets -->
+            <h2 class="text-xl font-bold text-gray-800 mb-4">Key Performance Indicators</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <!-- Efficiency % -->
+                <div class="kpi-widget bg-white rounded-lg shadow p-5">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h3 class="text-sm font-medium text-gray-500">Efficiency</h3>
+                            <div class="mt-1 text-3xl font-bold text-gray-800">94.3%</div>
+                        </div>
+                        <div class="bg-green-100 p-2 rounded-md">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div class="bg-green-600 h-2 rounded-full" style="width: 94%"></div>
+                        </div>
+                    </div>
+                    <div class="mt-2 flex items-center text-sm">
+                        <span class="text-green-500 flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V8.414l-4.293 4.293a1 1 0 01-1.414 0L8 10.414l-4.293 4.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0L11 10.586 14.586 7H12z" clip-rule="evenodd" />
+                            </svg>
+                            1.2%
+                        </span>
+                        <span class="text-gray-500 ml-2">from yesterday</span>
+                    </div>
+                </div>
+                
+                <!-- Downtime -->
+                <div class="kpi-widget bg-white rounded-lg shadow p-5">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h3 class="text-sm font-medium text-gray-500">Downtime</h3>
+                            <div class="mt-1 text-3xl font-bold text-gray-800">23 min</div>
+                        </div>
+                        <div class="bg-blue-100 p-2 rounded-md">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div class="bg-blue-600 h-2 rounded-full" style="width: 15%"></div>
+                        </div>
+                    </div>
+                    <div class="mt-2 flex items-center text-sm">
+                        <span class="text-green-500 flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V8.414l-4.293 4.293a1 1 0 01-1.414 0L8 10.414l-4.293 4.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0L11 10.586 14.586 7H12z" clip-rule="evenodd" />
+                            </svg>
+                            5.4%
+                        </span>
+                        <span class="text-gray-500 ml-2">improvement</span>
+                    </div>
+                </div>
+                
+                <!-- Output Rate -->
+                <div class="kpi-widget bg-white rounded-lg shadow p-5">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h3 class="text-sm font-medium text-gray-500">Output Rate</h3>
+                            <div class="mt-1 text-3xl font-bold text-gray-800">842 kg/h</div>
+                        </div>
+                        <div class="bg-purple-100 p-2 rounded-md">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div class="bg-purple-600 h-2 rounded-full" style="width: 84%"></div>
+                        </div>
+                    </div>
+                    <div class="mt-2 flex items-center text-sm">
+                        <span class="text-red-500 flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M12 13a1 1 0 100 2h5a1 1 0 001-1v-5a1 1 0 10-2 0v2.586l-4.293-4.293a1 1 0 00-1.414 0L8 9.586l-4.293-4.293a1 1 0 00-1.414 1.414l5 5a1 1 0 001.414 0L11 9.414 14.586 13H12z" clip-rule="evenodd" />
+                            </svg>
+                            0.8%
+                        </span>
+                        <span class="text-gray-500 ml-2">from target</span>
+                    </div>
+                </div>
+                
+                <!-- Material Usage -->
+                <div class="kpi-widget bg-white rounded-lg shadow p-5">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h3 class="text-sm font-medium text-gray-500">Material Usage</h3>
+                            <div class="mt-1 text-3xl font-bold text-gray-800">97.2%</div>
+                        </div>
+                        <div class="bg-amber-100 p-2 rounded-md">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div class="bg-amber-500 h-2 rounded-full" style="width: 97%"></div>
+                        </div>
+                    </div>
+                    <div class="mt-2 flex items-center text-sm">
+                        <span class="text-green-500 flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V8.414l-4.293 4.293a1 1 0 01-1.414 0L8 10.414l-4.293 4.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0L11 10.586 14.586 7H12z" clip-rule="evenodd" />
+                            </svg>
+                            2.1%
+                        </span>
+                        <span class="text-gray-500 ml-2">efficiency</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Material Usage Details -->
+            <h2 class="text-xl font-bold text-gray-800 mb-4">Material Usage Breakdown</h2>
+            <div class="bg-white rounded-lg shadow overflow-hidden mb-8">
+                <div class="px-4 py-5 sm:p-6">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <!-- Water -->
+                        <div class="flex flex-col">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="text-sm font-medium text-gray-500">Water</span>
+                                <span class="text-sm font-semibold text-gray-700">4,320 L</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2.5 mb-1">
+                                <div class="bg-blue-500 h-2.5 rounded-full" style="width: 78%"></div>
+                            </div>
+                            <div class="flex justify-between text-xs text-gray-500">
+                                <span>0 L</span>
+                                <span>5,500 L (Capacity)</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Vitamin -->
+                        <div class="flex flex-col">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="text-sm font-medium text-gray-500">Vitamin</span>
+                                <span class="text-sm font-semibold text-gray-700">156 kg</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2.5 mb-1">
+                                <div class="bg-green-500 h-2.5 rounded-full" style="width: 52%"></div>
+                            </div>
+                            <div class="flex justify-between text-xs text-gray-500">
+                                <span>0 kg</span>
+                                <span>300 kg (Capacity)</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Grains -->
+                        <div class="flex flex-col">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="text-sm font-medium text-gray-500">Grains</span>
+                                <span class="text-sm font-semibold text-gray-700">1,875 kg</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2.5 mb-1">
+                                <div class="bg-amber-500 h-2.5 rounded-full" style="width: 94%"></div>
+                            </div>
+                            <div class="flex justify-between text-xs text-gray-500">
+                                <span>0 kg</span>
+                                <span>2,000 kg (Capacity)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Update current time
+        function updateTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            document.getElementById('currentTime').textContent = timeString;
+        }
+        
+        updateTime();
+        setInterval(updateTime, 60000);
+        
+        // Simulate real-time data updates
+        function updateSensorData() {
+            // Update weight value with small random changes
+            const weightElement = document.getElementById('weightValue');
+            let weight = parseInt(weightElement.textContent.replace(',', ''));
+            weight = weight + Math.floor(Math.random() * 11) - 5; // Random change between -5 and +5
+            weightElement.textContent = weight.toLocaleString();
+            
+            // Update flow value with small random changes
+            const flowElement = document.getElementById('flowValue');
+            let flow = parseFloat(flowElement.textContent);
+            flow = (flow + (Math.random() * 0.6) - 0.3).toFixed(1); // Random change between -0.3 and +0.3
+            flowElement.textContent = flow;
+        }
+        
+        // Update data every 3 seconds
+        setInterval(updateSensorData, 3000);
+        
+        // Handle sync button click
+        document.getElementById('syncButton').addEventListener('click', function() {
+            const syncStatus = document.getElementById('syncStatus');
+            const syncButton = document.getElementById('syncButton');
+            
+            // Disable button and show syncing state
+            syncButton.disabled = true;
+            syncButton.classList.add('bg-gray-500');
+            syncButton.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+            syncButton.innerHTML = `
+                <svg class="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Syncing...
+            `;
+            
+            syncStatus.textContent = "Status: Pending...";
+            syncStatus.classList.remove('text-green-600');
+            syncStatus.classList.add('text-amber-600');
+            
+            // Update status strip
+            const statusStrip = document.getElementById('statusStrip');
+            statusStrip.className = 'status-orange py-1 px-4 flex justify-between items-center text-white';
+            statusStrip.querySelector('span').textContent = 'Manual Override Active';
+            
+            // Simulate sync process
+            setTimeout(function() {
+                const now = new Date();
+                const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                
+                // Re-enable button
+                syncButton.disabled = false;
+                syncButton.classList.remove('bg-gray-500');
+                syncButton.classList.add('bg-blue-600', 'hover:bg-blue-700');
+                syncButton.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd" />
+                    </svg>
+                    Sync Now
+                `;
+                
+                syncStatus.textContent = `Status: Synced (Last update: ${timeString})`;
+                syncStatus.classList.remove('text-amber-600');
+                syncStatus.classList.add('text-green-600');
+                
+                // Update status strip back to normal
+                statusStrip.className = 'status-green py-1 px-4 flex justify-between items-center text-white';
+                statusStrip.querySelector('span').textContent = 'All Systems OK';
+                
+            }, 3000);
+        });
+        
+        // Simulate machine status changes
+        function simulateMachineStatusChange() {
+            const statuses = [
+                { text: 'Running', color: 'text-green-600', border: 'machine-status-running', gauge: '#10B981', percent: '90%', dasharray: '226 251' },
+                { text: 'Idle', color: 'text-amber-600', border: 'machine-status-idle', gauge: '#F59E0B', percent: '45%', dasharray: '113 251' },
+                { text: 'Error', color: 'text-red-600', border: 'machine-status-error', gauge: '#EF4444', percent: '0%', dasharray: '0 251' }
+            ];
+            
+            // Only change status occasionally (20% chance)
+            if (Math.random() > 0.8) {
+                const randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
+                const machineStatusElement = document.getElementById('machineStatus');
+                const machineStatusTile = machineStatusElement.closest('.sensor-tile');
+                const gaugeFill = machineStatusTile.querySelector('.gauge-fill');
+                const gaugeText = machineStatusTile.querySelector('text');
+                
+                // Update text and color
+                machineStatusElement.textContent = randomStatus.text;
+                machineStatusElement.className = `text-2xl font-bold ${randomStatus.color}`;
+                
+                // Update border style
+                machineStatusTile.className = `sensor-tile bg-white rounded-lg shadow overflow-hidden ${randomStatus.border}`;
+                
+                // Update gauge
+                gaugeFill.setAttribute('stroke', randomStatus.gauge);
+                gaugeFill.setAttribute('stroke-dasharray', randomStatus.dasharray);
+                gaugeText.textContent = randomStatus.percent;
+                gaugeText.setAttribute('fill', randomStatus.gauge);
+                
+                // Update status strip if error
+                const statusStrip = document.getElementById('statusStrip');
+                if (randomStatus.text === 'Error') {
+                    statusStrip.className = 'status-red py-1 px-4 flex justify-between items-center text-white';
+                    statusStrip.querySelector('span').textContent = 'SAP/SCADA Error';
+                } else if (statusStrip.classList.contains('status-red')) {
+                    statusStrip.className = 'status-green py-1 px-4 flex justify-between items-center text-white';
+                    statusStrip.querySelector('span').textContent = 'All Systems OK';
+                }
+            }
+        }
+        
+        // Simulate machine status changes every 10 seconds
+        setInterval(simulateMachineStatusChange, 10000);
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9494ecb2f16a9a7b',t:'MTc0ODg0NjA2Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
